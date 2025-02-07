@@ -8,6 +8,7 @@ using System;
 using System.Threading;
 using UnityEngine;
 
+[Serializable]
 public class Joycon
 {
     public enum DebugType
@@ -54,8 +55,7 @@ public class Joycon
 
     private float[] stick = { 0, 0 };
 
-    private 
-	IntPtr handle;
+    private IntPtr handle;
 
     byte[] default_buf = { 0x0, 0x1, 0x40, 0x40, 0x0, 0x1, 0x40, 0x40 };
 
