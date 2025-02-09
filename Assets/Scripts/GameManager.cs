@@ -11,11 +11,17 @@ namespace DefaultNamespace
         [SerializeField] private GameObject gamePlay;
         [SerializeField] private GameObject endMenu;
         [SerializeField] private GameObject warningUI;
+        [SerializeField] private AudioClip bgm;
         public bool rumbleOn = true;
         public bool BGMMute = false;
         public bool EffectMute = false;
-        private int score = 0;
+        private int _score = 0;
+        public int Score => _score;
+        [SerializeField]private float gameTime = 60;
+        public float currentTime = 0;
+        private bool _gameStarted = false;
         public event Action<int> OnScoreChange; 
+        public event Action<float> OnTimeChange;
 
         private void Start()
         {
@@ -23,6 +29,8 @@ namespace DefaultNamespace
             {
                 warningUI.SetActive(true);
             }
+            AudioSystem.PlayBGM(bgm);
+            AudioSystem.BGMVolume = 0.2f;
         }
 
         public void StartGame()
@@ -31,16 +39,34 @@ namespace DefaultNamespace
             mainMenu.SetActive(false);
             endMenu.SetActive(false);
             gamePlay.SetActive(true);
-            UISystem.ShowUI("ScoreUI");
-            score = 0;
+            _score = 0;
+            currentTime = gameTime;
+            _gameStarted = true;
             ChangeScore(0);
         }
-        
-        public void EndGame()
+
+        private void Update()
         {
+            if (_gameStarted)
+            {
+                currentTime -= Time.deltaTime;
+                if (currentTime <= 0)
+                {
+                    currentTime = 0;
+                    EndGame();
+                }
+                OnTimeChange?.Invoke(currentTime);
+            }
+        }
+
+
+        private void EndGame()
+        {
+            _gameStarted = false;
+            EventSystem.EventTrigger("GameOver");
             endMenu.SetActive(true);
             gamePlay.SetActive(false);
-            mainMenu.SetActive(true);
+            mainMenu.SetActive(false);
         }
         
         public void BackToMainMenu()
@@ -52,8 +78,8 @@ namespace DefaultNamespace
 
         public void ChangeScore(int delta)
         {
-            score += delta;
-            OnScoreChange?.Invoke(score);
+            _score += delta;
+            OnScoreChange?.Invoke(_score);
         }
 
         public void Quit()

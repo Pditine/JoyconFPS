@@ -12,10 +12,12 @@ namespace GamePlay.Enemy
         [SerializeField] private Transform rightUpFront;
         [SerializeField] private Transform leftDownBack;
         [SerializeField] private Vector2 spawnInterval = new(3, 8);
+        
         private Coroutine _spawnCoroutine;
 
         private void OnEnable()
         {
+            
             ContinuouslySpawn();
         }
         

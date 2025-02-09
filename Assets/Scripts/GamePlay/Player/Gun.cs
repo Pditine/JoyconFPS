@@ -28,6 +28,7 @@ namespace GamePlay
 		private bool _isLoading = false;
 		[SerializeField] private int maxAmmo = 10;
 		[SerializeField] private float recoil = -10;
+		[SerializeField] private AudioClip fireSound;
 		private float _currentRecoil;
 		private int _currentAmmo = 10;
 		public event Action<int, int> OnAmmoChange;
@@ -93,6 +94,7 @@ namespace GamePlay
 		{
 			if (!Joycon.GetButtonDown(Joycon.Button.SHOULDER_2) || _currentFireCD < fireCD) return;
 			if (_currentAmmo <= 0) return;
+			AudioSystem.PlayEffect(fireSound,transform);
 			_currentRecoil += recoil;
 			_currentAmmo--;
 			OnAmmoChange?.Invoke(_currentAmmo, maxAmmo);
