@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using PurpleFlowerCore;
 using UnityEngine;
 
 namespace GamePlay
@@ -15,7 +14,6 @@ namespace GamePlay
 		public Vector3 accel;
 		public int jcInd = 0;
 		public Quaternion orientation;
-		private bool _hadThrown = false;
 
 		[SerializeField] private GameObject grenadeGameObject;
 		
@@ -57,10 +55,8 @@ namespace GamePlay
 		{
 			stick = Joycon.GetStick();
 
-			// Gyro values: x, y, z axis values (in radians per second)
 			gyro = Joycon.GetGyro();
 
-			// Accel values:  x, y, z axis values (in Gs)
 			accel = Joycon.GetAccel();
             
 			orientation = Joycon.GetVector();

@@ -16,7 +16,7 @@ namespace GamePlay
             transform.position += _direction * (speed * Time.deltaTime);
         }
         
-        private void OnCollisionEnter(Collision other)
+        private void OnTriggerEnter(Collider other)
         {
             Destroy(gameObject);
         }
