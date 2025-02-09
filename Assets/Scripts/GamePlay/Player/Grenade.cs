@@ -50,6 +50,7 @@ namespace GamePlay
 			_currentCd += Time.deltaTime;
 			gameObject.transform.rotation = new Quaternion(orientation.x, -orientation.z, orientation.y, orientation.w);
 			Throw();
+			ResetGun();
 		}
 
 		private void GetInput()
@@ -79,6 +80,12 @@ namespace GamePlay
 			y = Mathf.Clamp(y, yRange.x, yRange.y);
 			z = Mathf.Clamp(z, zRange.x, zRange.y);
 			rigidbody.AddForce(x, y, z, ForceMode.Impulse);
+		}
+		
+		private void ResetGun()
+		{
+			if (!Joycon.GetButtonDown(Joycon.Button.SHOULDER_1)) return; 
+			Joycon.Recenter();
 		}
 	}
 }

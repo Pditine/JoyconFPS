@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using DefaultNamespace;
 using PurpleFlowerCore;
 using UnityEngine;
 
@@ -16,14 +18,21 @@ namespace GamePlay
 		public int jcInd = 0;
 		public Quaternion orientation;
     
-		[SerializeField]private float reloadTime = 1f;
-		private float _currentReloadTime = 0;
+		[SerializeField]private float reloadCD = 3f;
+		private float _currentReloadCD = 0;
 		[SerializeField] private float fireCD = 0.1f;
 		private float _currentFireCD;
 		[SerializeField] private Bullet bullet;
 		[SerializeField] private Transform laser;
 		[SerializeField] private Animator animator;
 		private bool _isLoading = false;
+		[SerializeField] private int maxAmmo = 10;
+		[SerializeField] private float recoil = -10;
+		private float _currentRecoil;
+		private int _currentAmmo = 10;
+		public event Action<int, int> OnAmmoChange;
+		public event Action OnReload;
+		public event Action EndReload;
 		void Start ()
 		{
 			gyro = new Vector3(0, 0, 0);
@@ -40,13 +49,18 @@ namespace GamePlay
 		{
 			if(Joycon == null) return;
 			GetInput();
-			_currentReloadTime += Time.deltaTime;
+			// _currentReloadCD += Time.deltaTime;
 			_currentFireCD += Time.deltaTime;
-			
+			_currentReloadCD += Time.deltaTime;
 			SyncOrientation();
 			Fire();
 			ResetGun();
 			Reload();
+		}
+
+		private void FixedUpdate()
+		{
+			_currentRecoil = Mathf.Lerp(_currentRecoil, 0, 0.1f);
 		}
 
 		private void GetInput()
@@ -66,6 +80,7 @@ namespace GamePlay
 		{
 			// gameObject.transform.rotation = orientation;
 			gameObject.transform.rotation = new Quaternion(orientation.x, -orientation.z, orientation.y, orientation.w);
+			gameObject.transform.Rotate(_currentRecoil, 0, 0);
 		}
 
 		private void ResetGun()
@@ -76,40 +91,45 @@ namespace GamePlay
 
 		private void Fire()
 		{
-			if (!Joycon.GetButtonDown(Joycon.Button.SHOULDER_2)) return;
+			if (!Joycon.GetButtonDown(Joycon.Button.SHOULDER_2) || _currentFireCD < fireCD) return;
+			if (_currentAmmo <= 0) return;
+			_currentRecoil += recoil;
+			_currentAmmo--;
+			OnAmmoChange?.Invoke(_currentAmmo, maxAmmo);
 			PFCLog.Debug("Shoulder button 2 pressed - Fire");
-
-			Joycon.SetRumble (160, 320, 0.6f, 100);
+			_currentFireCD = 0;
+			if(GameManager.Instance.rumbleOn)
+				Joycon.SetRumble (160, 320, 0.6f, 100);
 	    
 			var theBullet = Instantiate(bullet, laser.position, laser.rotation);
-			theBullet.Init(-laser.up);  
+			theBullet.Init(-laser.up);
 		}
     
 		private void Reload()
 		{
 			if(!(orientation.y > 0.4f && orientation.z > 0.5f))
 			{
-				_currentReloadTime = 0;
 				_isLoading = false;
 				animator.Play("Idle", 0, 0);
+				EndReload?.Invoke();
+				OnAmmoChange?.Invoke(_currentAmmo, maxAmmo);
 				return;
 			}
 
-			if (!_isLoading)
+			if (!_isLoading && _currentReloadCD > reloadCD)
 			{
+				OnReload?.Invoke();
 				animator.Play("Reload", 0, 0);
 			}
 			_isLoading = true;
-			_currentReloadTime += Time.deltaTime;
-			if (_currentReloadTime >= reloadTime)
-			{
-				DoReload();
-				_currentReloadTime = 0;
-			}
 		}
 
 		private void DoReload()
 		{
+			_currentAmmo = maxAmmo;
+			_currentReloadCD = 0;
+			animator.Play("Idle", 0, 0);
+			OnAmmoChange?.Invoke(_currentAmmo, maxAmmo);
 			PFCLog.Debug("Reloaded");
 		}
 	}
